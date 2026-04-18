@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Chatbot Chipre</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  overflow: hidden;
+}
+
+video {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#bot {
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+  width: 80px;
+  height: 80px;
+  background: cyan;
+  border-radius: 50%;
+  box-shadow: 0 0 20px cyan;
+  transition: transform 0.2s;
+}
+
+#subtitulo {
+  position: absolute;
+  bottom: 50px;
+  left: 150px;
+  color: white;
+  font-size: 20px;
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<video autoplay muted loop>
+  <source src="video.mp4.mp4" type="video/mp4">
+</video>
+
+<div id="bot"></div>
+<div id="subtitulo">Haz clic para empezar</div>
+
+<audio id="audio"></audio>
+
+<script>
+let paso = 0;
+
+const guion = [
+  { audio: "audio1.mp3.mp4", texto: "Hablamos de Chipre" },
+  { audio: "audio2.mp3.mp4", texto: "Influencia griega, turca y mediterránea" },
+  { audio: "audio3.mp3.mp4", texto: "Familia, fiestas y hospitalidad" },
+  { audio: "audio4.mp3.mp4", texto: "Reciben con comida y calidez" },
+  { audio: "audio5.mp3.mp4", texto: "Halloumi, souvlaki y meze" },
+  { audio: "audio6.mp3.mp4", texto: "Pascua y Día de Independencia" },
+  { audio: "audio7.mp3.mp4", texto: "Celebraciones religiosas" },
+  { audio: "audio8.mp3.mp4", texto: "Festivales todo el año" },
+  { audio: "audio9.mp3.mp4", texto: "Danzas tradicionales" },
+  { audio: "audio10.mp3.mp4", texto: "Historia y autenticidad" }
+];
+
+let escuchando = false;
+
+async function iniciarMicrofono() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const audioContext = new AudioContext();
+  const mic = audioContext.createMediaStreamSource(stream);
+  const analyser = audioContext.createAnalyser();
+
+  mic.connect(analyser);
+
+  const data = new Uint8Array(analyser.frequencyBinCount);
+
+  function detectar() {
+    analyser.getByteFrequencyData(data);
+
+    let volumen = data.reduce((a, b) => a + b) / data.length;
+
+    if (volumen > 30 && !escuchando) {
+      escuchando = true;
+
+      setTimeout(() => {
+        siguientePaso();
+        escuchando = false;
+      }, 3500);
+    }
+
+    requestAnimationFrame(detectar);
+  }
+
+  detectar();
+}
+
+function siguientePaso() {
+  if (paso >= guion.length) return;
+
+  let a = document.getElementById("audio");
+  a.src = guion[paso].audio;
+  a.play();
+
+  document.getElementById("subtitulo").innerText = guion[paso].texto;
+
+  paso++;
+}
+
+document.body.onclick = () => {
+  iniciarMicrofono();
+  siguientePaso();
+};
+
+setInterval(() => {
+  let bot = document.getElementById("bot");
+  bot.style.transform = "scale(1.3)";
+  setTimeout(() => {
+    bot.style.transform = "scale(1)";
+  }, 200);
+}, 700);
+</script>
+
+</body>
+</html>
